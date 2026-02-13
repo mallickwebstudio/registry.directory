@@ -4,14 +4,16 @@ import { useState, useMemo } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs';
 import { DirectoryList } from './directory-list';
 import { SearchBar } from './search-bar';
-import type { DirectoryEntry } from '@/lib/types';
+import type { DirectoryEntry, GitHubStats, RegistryStats } from '@/lib/types';
 
 interface DirectoryTabsProps {
   components: DirectoryEntry[];
   tools: DirectoryEntry[];
+  stats: Record<string, RegistryStats>;
+  githubStats: Record<string, Omit<GitHubStats, 'fetchedAt'>>;
 }
 
-export function DirectoryTabs({ components, tools }: DirectoryTabsProps) {
+export function DirectoryTabs({ components, tools, stats, githubStats }: DirectoryTabsProps) {
   const [activeTab, setActiveTab] = useState('components');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -43,7 +45,7 @@ export function DirectoryTabs({ components, tools }: DirectoryTabsProps) {
       <Tabs defaultValue="components" value={activeTab} onValueChange={setActiveTab}>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6 mb-4 md:mb-6">
           <TabsList>
-            <TabsTrigger value="components">Components</TabsTrigger>
+            <TabsTrigger value="components">Registries</TabsTrigger>
             <TabsTrigger value="tools">Tools</TabsTrigger>
           </TabsList>
 
@@ -53,7 +55,7 @@ export function DirectoryTabs({ components, tools }: DirectoryTabsProps) {
               onChange={setSearchTerm}
               placeholder={
                 activeTab === 'components' 
-                  ? "Search components by name, description, or url..."
+                  ? "Search registries by name, description, or url..."
                   : "Search tools by name, description, or url..."
               }
             />
@@ -65,8 +67,10 @@ export function DirectoryTabs({ components, tools }: DirectoryTabsProps) {
             entries={filteredComponents}
             searchTerm={searchTerm}
             addCardUrl={addComponentUrl}
-            addCardLabel="Add your Component"
+            addCardLabel="Add your Registry"
             showViewButton={true}
+            stats={stats}
+            githubStats={githubStats}
           />
         </TabsContent>
 

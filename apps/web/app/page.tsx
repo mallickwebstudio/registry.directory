@@ -2,6 +2,8 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { Metadata } from "next";
 import { DirectoryTabs } from "@/components/directory-tabs";
+import { fetchAllRegistryStats } from "@/lib/registry-stats";
+import { fetchAllGitHubStats } from "@/lib/github-stats";
 import type { DirectoryEntry } from "@/lib/types";
 
 // Enable static generation
@@ -42,10 +44,10 @@ async function getRegistries(): Promise<DirectoryEntry[]> {
       url: registry.url,
       github_url: registry.github_url,
       github_profile: registry.github_profile,
+      registry_url: registry.registry_url,
     }));
   } catch (error) {
     console.error("Error reading directory.json:", error);
-    // Fallback to empty array or default registries
     return [];
   }
 }
@@ -75,10 +77,14 @@ async function getTools(): Promise<DirectoryEntry[]> {
 export default async function Home() {
   const components = await getRegistries();
   const tools = await getTools();
+  const [stats, githubStats] = await Promise.all([
+    fetchAllRegistryStats(components),
+    fetchAllGitHubStats(components),
+  ]);
   return (
     <main className="flex min-h-screen flex-col items-center justify-start pt-24 md:pt-32 pb-12 md:pb-20">
       <div className="flex items-center gap-2 mb-8 md:mb-10">
-        <h1 className="text-sm font-medium font-mono">
+        <h1 className="text-base font-medium font-mono">
           registry<span className="text-muted-foreground">.directory</span>{" "}
           <span className="text-xs text-foreground rounded-md border bg-rose-700 px-1">
             beta
@@ -115,7 +121,7 @@ export default async function Home() {
         <span className="text-muted-foreground"> registries</span>
       </div>
 
-      <DirectoryTabs components={components} tools={tools} />
+      <DirectoryTabs components={components} tools={tools} stats={stats} githubStats={githubStats} />
     </main>
   );
 }
