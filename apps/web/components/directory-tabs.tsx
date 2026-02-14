@@ -1,21 +1,24 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useDeferredValue } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs';
 import { DirectoryList } from './directory-list';
 import { SearchBar } from './search-bar';
 import type { DirectoryEntry, GitHubStats, RegistryStats } from '@/lib/types';
+import type { IndexedItem } from '@/lib/items-index';
 
 interface DirectoryTabsProps {
   components: DirectoryEntry[];
   tools: DirectoryEntry[];
   stats: Record<string, RegistryStats>;
   githubStats: Record<string, Omit<GitHubStats, 'fetchedAt'>>;
+  items: IndexedItem[];
 }
 
-export function DirectoryTabs({ components, tools, stats, githubStats }: DirectoryTabsProps) {
+export function DirectoryTabs({ components, tools, stats, githubStats, items }: DirectoryTabsProps) {
   const [activeTab, setActiveTab] = useState('components');
   const [searchTerm, setSearchTerm] = useState('');
+  const deferredSearchTerm = useDeferredValue(searchTerm);
 
   const filteredComponents = useMemo(() => {
     if (!searchTerm) return components;
@@ -37,6 +40,16 @@ export function DirectoryTabs({ components, tools, stats, githubStats }: Directo
     );
   }, [tools, searchTerm]);
 
+  const filteredItems = useMemo(() => {
+    if (!deferredSearchTerm) return [];
+    const term = deferredSearchTerm.toLowerCase();
+    return items.filter(item =>
+      item.name.toLowerCase().includes(term) ||
+      item.description.toLowerCase().includes(term) ||
+      item.categories.some(c => c.toLowerCase().includes(term))
+    );
+  }, [items, deferredSearchTerm]);
+
   const addComponentUrl = 'https://github.com/rbadillap/registry.directory';
   const addToolUrl = 'https://github.com/rbadillap/registry.directory';
 
@@ -55,8 +68,8 @@ export function DirectoryTabs({ components, tools, stats, githubStats }: Directo
               onChange={setSearchTerm}
               placeholder={
                 activeTab === 'components' 
-                  ? "Search registries by name, description, or url..."
-                  : "Search tools by name, description, or url..."
+                  ? "Search registries and components..."
+                  : "Search tools..."
               }
             />
           </div>
@@ -71,6 +84,7 @@ export function DirectoryTabs({ components, tools, stats, githubStats }: Directo
             showViewButton={true}
             stats={stats}
             githubStats={githubStats}
+            itemResults={activeTab === 'components' ? filteredItems : []}
           />
         </TabsContent>
 

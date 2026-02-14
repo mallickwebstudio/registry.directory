@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { ScrollArea } from "@workspace/ui/components/scroll-area"
+import { ScrollArea, ScrollBar } from "@workspace/ui/components/scroll-area"
 import { Button } from "@workspace/ui/components/button"
 import { FileCode, Package, Copy, Check, FileWarning } from "lucide-react"
 import type { RegistryItem } from "@/lib/registry-types"
@@ -122,17 +122,8 @@ export function CodeViewer({ file, selectedItem }: CodeViewerProps) {
   const fileName = getFileName(targetPath)
   const fileExtension = getExtension(targetPath)
 
-  console.log('[CodeViewer] Rendering file:', {
-    path: file.path,
-    targetPath,
-    fileName,
-    extension: fileExtension,
-    isBinary: isBinaryExtension(fileExtension),
-  })
-
   // Handle binary files that cannot be rendered
   if (isBinaryExtension(fileExtension)) {
-    console.log('[CodeViewer] Binary file detected, showing fallback UI:', fileName)
     return (
       <div className="h-full flex flex-col bg-black">
         <div className="h-[44px] md:h-[49px] flex items-center border-b border-neutral-700/50 bg-black px-3 md:px-4 flex-shrink-0">
@@ -188,10 +179,11 @@ export function CodeViewer({ file, selectedItem }: CodeViewerProps) {
             <div className="p-3 md:p-4 text-sm text-neutral-500">Loading...</div>
           ) : (
             <div
-              className="p-3 md:p-4 text-xs md:text-sm font-mono"
+              className="p-3 md:p-4 text-xs md:text-sm font-mono [counter-reset:line] [&_.line]:before:content-[counter(line)] [&_.line]:before:[counter-increment:line] [&_.line]:before:sticky [&_.line]:before:left-0 [&_.line]:before:inline-block [&_.line]:before:w-12 [&_.line]:before:pr-4 [&_.line]:before:pl-3 [&_.line]:before:text-right [&_.line]:before:text-neutral-600 [&_.line]:before:select-none [&_.line]:before:bg-black"
               dangerouslySetInnerHTML={{ __html: highlightedCode }}
             />
           )}
+          <ScrollBar orientation="horizontal" />
         </ScrollArea>
       </div>
     </div>
